@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3b82f6">
+<title>Kalender Pintar</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; color: #1e293b; padding: 15px; max-width: 640px; margin: auto; }
+  h1 { text-align: center; font-size: 24px; margin-bottom: 20px; color: #0f172a; }
+  .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+  h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #334155; }
+  label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; color: #475569; }
+  input, button, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; font-family: inherit; outline: none; }
+  input:focus, select:focus { border-color: #3b82f6; }
+  button { background: #3b82f6; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+  button:hover { background: #2563eb; }
+  button:disabled { background: #94a3b8; cursor: not-allowed; }
+  button.secondary { background: #e2e8f0; color: #334155; }
+  button.secondary:hover { background: #cbd5e1; }
+  button.danger { background: #ef4444; }
+  button.danger:hover { background: #dc2626; }
+  #hasilAI { white-space: pre-wrap; font-size: 14px; background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #3b82f6; color: #1e3a8a; line-height: 1.5; display: none; }
+
+  .kalender-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .kalender-header button { width: auto; padding: 8px 14px; margin: 0; }
+  .kalender-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .kalender-grid .day-name { text-align: center; font-size: 11px; font-weight: bold; color: #64748b; padding: 4px 0; }
+  .kalender-grid .day {
+    aspect-ratio: 1 / 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 13px;
+    border-radius: 8px; cursor: pointer; background: #f1f5f9;
+    position: relative; user-select: none;
+  }
+  .kalender-grid .day:hover { background: #e0e7ff; }
+  .kalender-grid .day.other { color: #cbd5e1; background: #f8fafc; cursor: default; }
+  .kalender-grid .day.today { outline: 2px solid #3b82f6; }
+  .kalender-grid .day.selected { background: #3b82f6; color: white; }
+  .kalender-grid .day .dot {
+    width: 6px; height: 6px; background: #ef4444; border-radius: 50%;
+    position: absolute; bottom: 5px;
+  }
+  .kalender-grid .day.selected .dot { background: white; }
+
+  .klien-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 14px; }
+  .klien-item:last-child { border-bottom: none; }
+  .klien-item .row { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+  .klien-item .aksi { display: flex; gap: 6px; }
+  .klien-item .aksi button { width: auto; padding: 4px 10px; font-size: 12px; margin: 0; }
+  .info-jumlah { font-weight: bold; color: #1d4ed8; font-size: 15px; margin-top: 15px; margin-bottom: 10px; background: #dbeafe; padding: 10px; border-radius: 6px; }
+
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px;
+    font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+  <h1>📅 Kalender Pintar</h1>
+
+  <!-- KALENDER BULANAN -->
+  <div class="card">
+    <div class="kalender-header">
+      <button class="secondary" onclick="geserBulan(-1)">‹</button>
+      <h2 id="judulBulan" style="margin:0;">-</h2>
+      <button class="secondary" onclick="geserBulan(1)">›</button>
+    </div>
+    <div class="kalender-grid" id="kalenderGrid"></div>
+  </div>
+
+  <!-- INPUT KLIEN -->
+  <div class="card">
+    <h2 id="judulForm">📝 Input Data Klien</h2>
+    <input type="hidden" id="editId">
+    <label>Nama Klien</label>
+    <input type="text" id="judul" placeholder="Contoh: Budi" maxlength="60">
+    <label>Tanggal</label>
+    <input type="date" id="tanggal">
+    <label>Jam (opsional)</label>
+    <input type="time" id="jam">
+    <label>No WhatsApp</label>
+    <input type="text" id="wa" placeholder="08xxxxxxx" maxlength="20">
+    <label>Apa yang diurus?</label>
+    <input type="text" id="keperluan" placeholder="Contoh: Urus paspor" maxlength="80">
+    <label>Catatan Tambahan</label>
+    <input type="text" id="catatanKlien" placeholder="Catatan" maxlength="120">
+    <button onclick="simpanKlien()" id="btnSimpan">Simpan Data Klien</button>
+    <button class="secondary" onclick="resetForm()" id="btnBatal" style="display:none;">Batal Edit</button>
+  </div>
+
+  <!-- DAFTAR KLIEN -->
+  <div class="card">
+    <h2>📋 Data Klien</h2>
+    <label>Lihat Data Tanggal:</label>
+    <input type="date" id="tglLihat" onchange="muatDaftarKlien()">
+    <div id="infoJumlah" class="info-jumlah">Total: 0 Klien</div>
+    <div id="daftarKlien"><i>Memuat data...</i></div>
+  </div>
+
+  <div id="toast"></div>
+
+<!-- Pustaka Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // ==========================================
+  // KONFIGURASI SUPABASE — GANTI DENGAN PUNYAMU
+  // ==========================================
+  const SUPABASE_URL = "https://wffrfdbchcduufwaafpm.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_lqUhFiFqnXZd6rdRFB7r0w_HD6xCJxM";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ==========================================
+  // STATE
+  // ==========================================
+  let bulanAktif = new Date();
+  const hariIni = new Date().toISOString().split('T')[0];
+  let tanggalTerpilih = hariIni;
+
+  // ==========================================
+  // HELPER
+  // ==========================================
+  function esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+  function toast(msg, durasi=2500){
+    const t = document.getElementById('toast');
+    t.innerText = msg; t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=>t.classList.remove('show'), durasi);
+  }
+
+  // ==========================================
+  // SIMPAN / UPDATE KLIEN
+  // ==========================================
+  async function simpanKlien() {
+    const btn = document.getElementById('btnSimpan');
+    const id = document.getElementById('editId').value;
+    const nama = document.getElementById('judul').value.trim();
+    const tanggal_pulang = document.getElementById('tanggal').value;
+    const jam = document.getElementById('jam').value || null;
+    const wa = document.getElementById('wa').value.trim();
+    const keperluan = document.getElementById('keperluan').value.trim();
+    const catatan = document.getElementById('catatanKlien').value.trim();
+
+    if(!nama || nama.length < 2) return toast("Nama minimal 2 karakter");
+    if(!tanggal_pulang) return toast("Tanggal wajib diisi");
+
+    btn.disabled = true; btn.innerText = "Menyimpan...";
+
+    const dataKlien = { nama, wa, tanggal_pulang, jam, keperluan, catatan };
+    let error;
+
+    if (id) {
+      // Update
+      const { error: err } = await supabase.from('klien').update(dataKlien).eq('id', id);
+      error = err;
+    } else {
+      // Insert
+      const { error: err } = await supabase.from('klien').insert([dataKlien]);
+      error = err;
+    }
+
+    btn.disabled = false;
+
+    if(error) {
+      toast("❌ Gagal: " + error.message);
+    } else {
+      toast(id ? "✅ Data diperbarui!" : "✅ Data disimpan!");
+      resetForm();
+      muatDaftarKlien();
+      renderKalender();
+    }
+  }
+
+  function resetForm(){
+    ['judul','wa','keperluan','catatanKlien','jam','editId'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('judulForm').innerText = "📝 Input Data Klien";
+    document.getElementById('btnSimpan').innerText = "Simpan Data Klien";
+    document.getElementById('btnBatal').style.display = "none";
+    document.getElementById('tanggal').value = tanggalTerpilih || hariIni;
+  }
+
+  // ==========================================
+  // EDIT & HAPUS
+  // ==========================================
+  function editKlien(id, data){
+    document.getElementById('editId').value = id;
+    document.getElementById('judul').value = data.nama || '';
+    document.getElementById('tanggal').value = data.tanggal_pulang || '';
+    document.getElementById('jam').value = data.jam || '';
+    document.getElementById('wa').value = data.wa || '';
+    document.getElementById('keperluan').value = data.keperluan || '';
+    document.getElementById('catatanKlien').value = data.catatan || '';
+    document.getElementById('judulForm').innerText = "✏️ Edit Data Klien";
+    document.getElementById('btnSimpan').innerText = "Update Data Klien";
+    document.getElementById('btnBatal').style.display = "block";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  async function hapusKlien(id){
+    if(!confirm("Yakin ingin menghapus data klien ini?")) return;
+    const { error } = await supabase.from('klien').delete().eq('id', id);
+    if(error){
+      toast("❌ Gagal hapus: " + error.message);
+    } else {
+      toast("🗑️ Data dihapus");
+      muatDaftarKlien();
+      renderKalender();
+    }
+  }
+
+  // ==========================================
+  // DAFTAR KLIEN
+  // ==========================================
+  async function muatDaftarKlien() {
+    const el = document.getElementById('daftarKlien');
+    const elJumlah = document.getElementById('infoJumlah');
+    const tgl = document.getElementById('tglLihat').value;
+    if(!tgl) return;
+
+    el.innerHTML = "<i>Memuat data...</i>";
+    elJumlah.innerText = "Total: ... Klien";
+
+    const { data, error } = await supabase
+      .from('klien')
+      .select('*')
+      .eq('tanggal_pulang', tgl)
+      .order('jam', { ascending: true, nullsFirst: false });
+
+    if(error){
+      el.innerText = "Gagal memuat data klien.";
+      return;
+    }
+
+    elJumlah.innerText = `Total: ${data.length} Klien`;
+    if(data.length === 0){
+      el.innerHTML = "<div style='color:#64748b;'><i>Tidak ada data klien di tanggal ini.</i></div>";
+      return;
+    }
+
+    el.innerHTML = data.map(k => {
+      const waLink = k.wa
+        ? `<a href="https://wa.me/${esc(k.wa.replace(/^0/,'62').replace(/^\+/,''))}" target="_blank" style="font-size:12px;color:#16a34a;">📱 WA: ${esc(k.wa)}</a>`
+        : '';
+      const dataJson = JSON.stringify({
+        nama:k.nama||'', tanggal_pulang:k.tanggal_pulang||'', jam:k.jam||'',
+        wa:k.wa||'', keperluan:k.keperluan||'', catatan:k.catatan||''
+      }).replace(/'/g, "&#39;");
+      return `
+        <div class="klien-item">
+          <div class="row">
+            <div>
+              <strong>${esc(k.nama)}</strong>
+              ${k.jam ? `<span style="color:#3b82f6;font-size:12px;"> • ${esc(k.jam)}</span>` : ''}
+              <br>
+              <span style="color:#64748b;font-size:12px;">Urusan: ${esc(k.keperluan||'-')}</span>
+              ${k.catatan ? `<br><span style="color:#94a3b8;font-size:12px;">Catatan: ${esc(k.catatan)}</span>` : ''}
+              ${waLink ? `<br>${waLink}` : ''}
+            </div>
+            <div class="aksi">
+              <button class="secondary" onclick='editKlien(${JSON.stringify(k.id)}, ${dataJson})'>Edit</button>
+              <button class="danger" onclick="hapusKlien(${JSON.stringify(k.id)})">Hapus</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  // ==========================================
+  // KALENDER BULANAN
+  // ==========================================
+  async function renderKalender(){
+    const grid = document.getElementById('kalenderGrid');
+    const judul = document.getElementById('judulBulan');
+    const year = bulanAktif.getFullYear();
+    const month = bulanAktif.getMonth();
+
+    const namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    judul.innerText = `${namaBulan[month]} ${year}`;
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startWeekday = firstDay.getDay();
+
+    // Ambil data bulan ini untuk titik merah
+    const startDate = `${year}-${String(month+1).padStart(2,'0')}-01`;
+    const endDate = `${year}-${String(month+1).padStart(2,'0')}-${String(lastDay.getDate()).padStart(2,'0')}`;
+    
+    const { data: dataBulan } = await supabase
+      .from('klien')
+      .select('tanggal_pulang')
+      .gte('tanggal_pulang', startDate)
+      .lte('tanggal_pulang', endDate);
+
+    const tglAdaData = new Set((dataBulan || []).map(k => k.tanggal_pulang));
+
+    let html = '';
+    ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].forEach(d=>{
+      html += `<div class="day-name">${d}</div>`;
+    });
+    for(let i=0;i<startWeekday;i++) html += `<div class="day other"></div>`;
+
+    for(let d=1; d<=lastDay.getDate(); d++){
+      const iso = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const cls = ['day'];
+      if(iso === hariIni) cls.push('today');
+      if(iso === tanggalTerpilih) cls.push('selected');
+      const dot = tglAdaData.has(iso) ? '<div class="dot"></div>' : '';
+      html += `<div class="${cls.join(' ')}" onclick="pilihTanggal('${iso}')">${d}${dot}</div>`;
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function pilihTanggal(iso){
+    tanggalTerpilih = iso;
+    document.getElementById('tglLihat').value = iso;
+    document.getElementById('tanggal').value = iso;
+    renderKalender();
+    muatDaftarKlien();
+  }
+
+  function geserBulan(delta){
+    bulanAktif.setMonth(bulanAktif.getMonth() + delta);
+    renderKalender();
+  }
+
+  // ==========================================
+  // INIT
+  // ==========================================
+  document.getElementById('tanggal').value = hariIni;
+  document.getElementById('tglLihat').value = hariIni;
+
+  renderKalender();
+  muatDaftarKlien();
+
+  // Daftarkan Service Worker (PWA)
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(err=>console.log('SW gagal', err));
+  }
+</script>
+</body>
+</html>
