@@ -98,6 +98,7 @@
     <h2>📋 Data Klien</h2>
     <label>Lihat Data Tanggal:</label>
     <input type="date" id="tglLihat" onchange="muatDaftarKlien()">
+    <input type="text" id="inputCari" placeholder="🔍 Cari nama atau urusan..." oninput="cariKlien()" style="margin-top: 5px;">
     <div id="infoJumlah" class="info-jumlah">Total: 0 Klien</div>
     <div id="daftarKlien"><i>Memuat data...</i></div>
   </div>
@@ -241,6 +242,70 @@
       return;
     }
 
+   // ==========================================
+// FITUR PENCARIAN (LEVEL 1)
+// ==========================================
+async function cariKlien() {
+  const el = document.getElementById('daftarKlien');
+  const elJumlah = document.getElementById('infoJumlah');
+  const kataKunci = document.getElementById('inputCari').value.trim();
+
+  // Jika kolom pencarian kosong, kembalikan ke daftar per tanggal
+  if (kataKunci === '') {
+    muatDaftarKlien();
+    return;
+  }
+
+  el.innerHTML = "<i>Mencari data...</i>";
+  elJumlah.innerText = "Mencari...";
+
+  // Mencari di kolom 'nama' ATAU 'keperluan' menggunakan ilike (case-insensitive)
+  const { data, error } = await supabase
+    .from('klien')
+    .select('*')
+    .or(`nama.ilike.%${kataKunci}%,keperluan.ilike.%${kataKunci}%`)
+    .order('tanggal_pulang', { ascending: false });
+
+  if (error) {
+    el.innerText = "Gagal mencari data: " + error.message;
+    return;
+  }
+
+  elJumlah.innerText = `Ditemukan: ${data.length} Klien`;
+
+  if (data.length === 0) {
+    el.innerHTML = `<div style='color:#64748b;'><i>Tidak ada data yang cocok dengan kata kunci "${kataKunci}".</i></div>`;
+    return;
+  }
+
+  // Tampilkan hasilnya (kita gunakan desain kartu yang sama)
+  el.innerHTML = data.map(k => {
+    const waLink = k.wa ? `<a href="https://wa.me/${esc(k.wa.replace(/^0/,'62').replace(/^\+/,''))}" target="_blank" style="font-size:12px;color:#16a34a;">📱 WA: ${esc(k.wa)}</a>` : '';
+    const dataJson = JSON.stringify({
+      nama:k.nama||'', tanggal_pulang:k.tanggal_pulang||'', jam:k.jam||'',
+      wa:k.wa||'', keperluan:k.keperluan||'', catatan:k.catatan||''
+    }).replace(/'/g, "&#39;");
+    
+    return `
+      <div class="klien-item">
+        <div class="row">
+          <div>
+            <strong>${esc(k.nama)}</strong>
+            ${k.jam ? `<span style="color:#3b82f6;font-size:12px;"> • ${esc(k.jam)}</span>` : ''}
+            <span style="color:#f59e0b;font-size:12px;"> • ${esc(k.tanggal_pulang)}</span>
+            <br>
+            <span style="color:#64748b;font-size:12px;">Urusan: ${esc(k.keperluan||'-')}</span>
+            ${k.catatan ? `<br><span style="color:#94a3b8;font-size:12px;">Catatan: ${esc(k.catatan)}</span>` : ''}
+            ${waLink ? `<br>${waLink}` : ''}
+          </div>
+          <div class="aksi">
+            <button class="secondary" onclick='editKlien(${JSON.stringify(k.id)}, ${dataJson})'>Edit</button>
+            <button class="danger" onclick="hapusKlien(${JSON.stringify(k.id)})">Hapus</button>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
     elJumlah.innerText = `Total: ${data.length} Klien`;
     if(data.length === 0){
       el.innerHTML = "<div style='color:#64748b;'><i>Tidak ada data klien di tanggal ini.</i></div>";
