@@ -231,7 +231,7 @@
     el.innerHTML = "<i>Memuat data...</i>";
     elJumlah.innerText = "Total: ... Klien";
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('klien')
       .select('*')
       .eq('tanggal_pulang', tgl)
@@ -345,7 +345,7 @@
     const startDate = `${year}-${String(month+1).padStart(2,'0')}-01`;
     const endDate = `${year}-${String(month+1).padStart(2,'0')}-${String(lastDay.getDate()).padStart(2,'0')}`;
     
-    const { data: dataBulan } = await supabase
+    const { data: dataBulan } = await supabaseClient
       .from('klien')
       .select('tanggal_pulang')
       .gte('tanggal_pulang', startDate)
