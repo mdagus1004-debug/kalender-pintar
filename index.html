@@ -504,10 +504,10 @@ function kirimWA(nama, jam, keperluan, wa, tanggal) {
     renderKalender();
     muatDaftarKlien();
 
-    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('sw.js')
-        .catch(error => console.log('Service worker tidak aktif:', error));
-    }
+//     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+//     navigator.serviceWorker.register('sw.js')
+//     .catch(error => console.log('Service worker tidak aktif:', error));
+//     }
   </script>
 </body>
 </html>
