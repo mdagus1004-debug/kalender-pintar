@@ -222,7 +222,7 @@ if (angka.startsWith('0')) {
                 <button  type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
                 <button  type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
                 <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
-                <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)}')">Kirim WA</button>
+                <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)},'${esc(k.tanggal)}')">Kirim WA</button>
               </div>
             </div>
           </div>`;
@@ -235,9 +235,9 @@ async function ubahStatus(id, statusLama) {
   loadData();
 }
 
-    function kirimWA(nama, jam, keperluan, wa) {
+    function kirimWA(nama, jam, keperluan, wa, tanggal) {
   let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('01')) { nomor = '60' + nomor.slice(1); } else if (nomor.startsWith('0')) { nomor = '62' + nomor.slice(1); }
-  const pesan = `Halo ${nama}, asisten pintar hafis mengingatkan jam ${jam} ada jadwal mengurus ${keperluan} ya. Terima kasih.`;
+  const pesan = `Halo ${nama}, asisten pintar hafis mengingatkan tanggal ${tanggal} jam ${jam} ada jadwal mengurus ${keperluan} ya. Terima kasih.`;
   window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
 }
     
