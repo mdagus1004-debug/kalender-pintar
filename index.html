@@ -237,7 +237,7 @@ async function ubahStatus(id, statusLama) {
 
     function kirimWA(nama, jam, keperluan, wa) {
   let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('01')) { nomor = '60' + nomor.slice(1); } else if (nomor.startsWith('0')) { nomor = '62' + nomor.slice(1); }
-  const pesan = `Halo ${nama}, asisten pintar hafis mengingatkan jam ${jam} ada jadwal urus ${keperluan} ya. Terima kasih.`;
+  const pesan = `Halo ${nama}, asisten pintar hafis mengingatkan jam ${jam} ada jadwal mengurus ${keperluan} ya. Terima kasih.`;
   window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
 }
     
