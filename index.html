@@ -438,7 +438,7 @@ async function kirimSemuaPengingat() {
           .eq('tanggal_pulang', tanggal)
           .order('jam', { ascending: true, nullsFirst: false });
 
- F       if (error) throw error;
+        if (error) throw error;
 
         jumlah.innerText = `Total: ${data.length} Klien`;
         tampilkanDaftar(data);
