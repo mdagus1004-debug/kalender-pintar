@@ -229,11 +229,31 @@ if (angka.startsWith('0')) {
       }).join('');
     }
 
-async function ubahStatus(id, statusLama) {
-  const baru = statusLama === 'Selesai' ? 'Belum' : 'Selesai';
-  await supabaseClient.from('klien').update({ status: baru }).eq('id', id);
-muatDaftarKlien();
-renderKalender();
+async function muatDaftarKlien() {
+  const elemen = document.getElementById('daftarKlien');
+  const jumlah = document.getElementById('infoJumlah');
+  const tanggal = document.getElementById('tglLihat').value;
+  if (!tanggal) return;
+
+  elemen.innerHTML = '<i>Memuat data...</i>';
+  jumlah.innerText = 'Memuat...';
+
+  try {
+    // PASTIKAN menggunakan supabaseClient (bukan supabase)
+    const { data, error } = await supabaseClient
+      .from('klien')
+      .select('*')
+      .eq('tanggal_pulang', tanggal)
+      .order('jam', { ascending: true }); // nullsFirst DIHAPUS
+
+    if (error) throw error;
+
+    jumlah.innerText = `Total: ${data.length} Klien (${tanggal})`;
+    tampilkanDaftar(data);
+  } catch (error) {
+    jumlah.innerText = 'Data tidak dapat dimuat';
+    elemen.innerText = 'Gagal memuat data: ' + (error.message || 'Periksa koneksi.');
+  }
 }
 
     function kirimWA(nama, jam, keperluan, wa, tanggal) {
@@ -314,7 +334,7 @@ renderKalender();
       if (!confirm('Yakin ingin menghapus data klien ini?')) return;
 
       try {
-        const { error } = await supabaseClient.from('klien').delete().eq('id', id);
+        const { data, error } = await supabaseClient.from('klien').delete().eq('id', id);
         if (error) throw error;
 
         toast('🗑️ Data dihapus.');
@@ -353,14 +373,44 @@ renderKalender();
     }
 
     async function cariKlien() {
-      const kataKunci = document.getElementById('inputCari').value.trim().toLocaleLowerCase('id');
-      const elemen = document.getElementById('daftarKlien');
-      const jumlah = document.getElementById('infoJumlah');
+  const kataKunci = document.getElementById('inputCari').value.trim().toLowerCase();
+  const elemen = document.getElementById('daftarKlien');
+  const jumlah = document.getElementById('infoJumlah');
 
-      if (!kataKunci) {
-        await muatDaftarKlien();
-        return;
-      }
+  if (!kataKunci) {
+    await muatDaftarKlien();
+    return;
+  }
+
+  elemen.innerHTML = '<i>Mencari data...</i>';
+  jumlah.innerText = 'Mencari...';
+
+  try {
+    // PASTIKAN menggunakan supabaseClient
+    const { data, error } = await supabaseClient
+      .from('klien')
+      .select('*')
+      .order('tanggal_pulang', { ascending: false })
+      .limit(1000);
+
+    if (error) throw error;
+
+    const hasil = data.filter(k =>
+      String(k.nama || '').toLowerCase().includes(kataKunci) ||
+      String(k.keperluan || '').toLowerCase().includes(kataKunci)
+    );
+
+    jumlah.innerText = `Ditemukan: ${hasil.length} Klien`;
+    tampilkanDaftar(hasil, true);
+
+    if (hasil.length === 0) {
+      elemen.innerHTML = `<div style="color:#64748b;"><i>Tidak ada data yang cocok dengan kata kunci "${kataKunci}".</i></div>`;
+    }
+  } catch (error) {
+    jumlah.innerText = 'Pencarian gagal';
+    elemen.innerText = 'Gagal mencari data: ' + (error.message || 'Periksa koneksi.');
+  }
+}
 
       elemen.innerHTML = '<i>Mencari data...</i>';
       jumlah.innerText = 'Mencari...';
