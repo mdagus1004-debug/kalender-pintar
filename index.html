@@ -219,10 +219,10 @@ if (angka.startsWith('0')) {
                 ${k.wa ? `<br>${linkWhatsApp(k.wa)}` : ''}
               </div>
               <div class="aksi">
-                <button  type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
-                <button  type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
-                <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
-                <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)},'${esc(k.tanggal)}')">Kirim WA</button>
+  <button  type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
+ <button  type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
+ <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
+ <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)},'${esc(k.tanggal_pulang:)}')">Kirim WA</button>
               </div>
             </div>
           </div>`;
@@ -231,8 +231,9 @@ if (angka.startsWith('0')) {
 
 async function ubahStatus(id, statusLama) {
   const baru = statusLama === 'Selesai' ? 'Belum' : 'Selesai';
-  await supabase.from('klien').update({ status: baru }).eq('id', id);
-  loadData();
+  await supabaseClient.from('klien').update({ status: baru }).eq('id', id);
+muatDaftarKlien();
+renderKalender();
 }
 
     function kirimWA(nama, jam, keperluan, wa, tanggal) {
