@@ -386,10 +386,7 @@ async function cekPengingatHariIni() {
       const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
       const isHariIni = k.tanggal_pulang === hariIni ? '<span style="color:red; font-weight:bold;">[HARI INI]</span> ' : `[${formatTgl}] `;
 
-      return `<div style="margin-bottom: 5px;">
-                ${isHariIni}<strong>${esc(k.nama)}</strong> 
-                (${esc(k.jam || 'Tanpa Jam')}) - ${esc(k.keperluan)}
-              </div>`;
+      return `<div style="margin-bottom: 5px;">${isHariIni}<strong>${esc(k.nama)}</strong> (${esc(k.jam || 'Tanpa Jam')}) - ${esc(k.keperluan)}</div>`;
     }).join('');
     
     document.getElementById('btnKirimSemua').innerText = `🚀 Kirim Pengingat (${dataPengingatHariIni.length} Klien)`;
