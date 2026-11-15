@@ -1,508 +1,151 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#3b82f6">
-  <title>Kalender Pintar</title>
-  <link rel="manifest" href="manifest.json">
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f8fafc; color: #1e293b; padding: 15px;
-      max-width: 640px; margin: auto;
-    }
-    h1 { text-align: center; font-size: 24px; margin-bottom: 20px; color: #0f172a; }
-    .card {
-      background: white; padding: 20px; border-radius: 12px;
-      margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
-      border: 1px solid #e2e8f0;
-    }
-    h2 {
-      font-size: 18px; margin-bottom: 15px; display: flex;
-      align-items: center; gap: 8px; color: #334155;
-    }
-    label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; color: #475569; }
-    input, button, select {
-      width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px;
-      border: 1px solid #cbd5e1; font-size: 14px; font-family: inherit; outline: none;
-    }
-    input:focus, select:focus { border-color: #3b82f6; }
-    button {
-      background: #3b82f6; color: white; border: none; font-weight: bold;
-      cursor: pointer; margin-top: 5px;
-    }
-    button:hover { background: #2563eb; }
-    button:disabled { background: #94a3b8; cursor: not-allowed; }
-    button.secondary { background: #e2e8f0; color: #334155; }
-    button.secondary:hover { background: #cbd5e1; }
-    button.danger { background: #ef4444; }
-    button.danger:hover { background: #dc2626; }
-
-    .kalender-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-    }
-    .kalender-header button { width: auto; padding: 8px 14px; margin: 0; }
-    .kalender-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .kalender-grid .day-name {
-      text-align: center; font-size: 11px; font-weight: bold; color: #64748b; padding: 4px 0;
-    }
-    .kalender-grid .day {
-      aspect-ratio: 1 / 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; font-size: 13px;
-      border-radius: 8px; cursor: pointer; background: #f1f5f9;
-      position: relative; user-select: none;
-    }
-    .kalender-grid .day:hover { background: #e0e7ff; }
-    .kalender-grid .day.other { color: #cbd5e1; background: #f8fafc; cursor: default; }
-    .kalender-grid .day.today { outline: 2px solid #3b82f6; }
-    .kalender-grid .day.selected { background: #3b82f6; color: white; }
-    .kalender-grid .day .dot {
-      width: 6px; height: 6px; background: #ef4444; border-radius: 50%;
-      position: absolute; bottom: 5px;
-    }
-    .kalender-grid .day.selected .dot { background: white; }
-
-    .klien-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 14px; }
-    .klien-item:last-child { border-bottom: none; }
-    .klien-item .row {
-      display: flex; justify-content: space-between; align-items: start; gap: 8px;
-    }
-    .klien-item .aksi { display: flex; gap: 6px; }
-    .klien-item .aksi button { width: auto; padding: 4px 10px; font-size: 12px; margin: 0; }
-    .info-jumlah {
-      font-weight: bold; color: #1d4ed8; font-size: 15px; margin-top: 15px;
-      margin-bottom: 10px; background: #dbeafe; padding: 10px; border-radius: 6px;
-    }
-    #toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px;
-      font-size: 14px; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999;
-    }
-    #toast.show { opacity: 1; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Klien</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:16px}
+.card{background:#fff;border-radius:12px;padding:16px;max-width:480px;margin:0 auto;box-shadow:0 2px 10px rgba(0,0,0,0.08)}
+label{font-weight:bold;display:block;margin:14px 0 6px;color:#333}
+input,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;box-sizing:border-box}
+button{width:100%;padding:13px;border:0;border-radius:10px;background:#2b7bff;color:#fff;font-size:16px;font-weight:bold;margin-top:16px}
+.item{border:1px solid #eee;border-radius:10px;padding:10px;margin-top:10px;background:#fafbff}
+#jumlah{background:#dbeafe;padding:10px;border-radius:8px;font-weight:bold;color:#1e40af;margin-top:14px}
+#daftar{margin-top:10px;font-style:italic}
+</style>
 </head>
-
 <body>
-  <h1>📅 Kalender Pintar</h1>
+<div class="card">
+  <h2>Tambah Klien</h2>
+  <label>Nama Klien</label>
+  <input id="nama" placeholder="Contoh: Febianicha">
+  <label>No WhatsApp</label>
+  <input id="wa" placeholder="08xxxxxxxxxx">
+  <label>Tanggal</label>
+  <input id="tanggal" type="date">
+  <label>Jam</label>
+  <input id="jam" type="time">
+  <label>Apa yang diurus?</label>
+  <input id="keperluan" placeholder="Contoh: Urus paspor">
+  <label>Catatan Tambahan</label>
+  <input id="catatan" placeholder="Catatan">
+  <button onclick="simpanKlien()">Simpan Data Klien</button>
 
-  <div class="card">
-    <div class="kalender-header">
-      <button type="button" class="secondary" onclick="geserBulan(-1)">&lt;</button>
-      <h2 id="judulBulan" style="margin:0;">-</h2>
-      <button type="button" class="secondary" onclick="geserBulan(1)">&gt;</button>
-    </div>
-    <div class="kalender-grid" id="kalenderGrid"></div>
-  </div>
-
-  <div class="card">
-    <h2 id="judulForm">📝 Input Data Klien</h2>
-    <input type="hidden" id="editId">
-
-    <label for="judul">Nama Klien</label>
-    <input type="text" id="judul" placeholder="Contoh: Budi" maxlength="60">
-
-    <label for="tanggal">Tanggal</label>
-    <input type="date" id="tanggal">
-
-    <label for="jam">Jam (opsional)</label>
-    <input type="time" id="jam">
-
-    <label for="wa">No WhatsApp</label>
-    <input type="text" id="wa" placeholder="08xxxxxxx" maxlength="20">
-
-    <label for="keperluan">Apa yang diurus?</label>
-    <input type="text" id="keperluan" placeholder="Contoh: Urus paspor" maxlength="80">
-
-    <label for="catatanKlien">Catatan Tambahan</label>
-    <input type="text" id="catatanKlien" placeholder="Catatan" maxlength="120">
-
-    <button type="button" onclick="simpanKlien()" id="btnSimpan">Simpan Data Klien</button>
-    <button type="button" class="secondary" onclick="resetForm()" id="btnBatal" style="display:none;">
-      Batal Edit
-    </button>
-
-
-  <div class="card">
-    <h2>📋 Data Klien</h2>
-    <label for="tglLihat">Lihat Data Tanggal:</label>
-    <input type="date" id="tglLihat" onchange="muatDaftarKlien()">
-
-    <input type="text" id="inputCari" placeholder="🔍 Cari nama atau urusan..."
-           oninput="cariKlien()" style="margin-top:5px;">
-
-    <div id="infoJumlah" class="info-jumlah">Total: 0 Klien</div>
-    <div id="daftarKlien"><i>Memuat data...</i></div>
-  
-
-  <div id="toast"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script>
-    // KONFIGURASI SUPABASE
-    const SUPABASE_URL = "https://wffrfdbchcduufwaafpm.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_lqUhFiFqnXZd6rdRFB7r0w_HD6xCJxM";
-
-    if (!window.supabase) {
-      document.getElementById('daftarKlien').innerText =
-        'Pustaka Supabase gagal dimuat. Periksa koneksi internet lalu muat ulang halaman.';
-      throw new Error('Pustaka Supabase tidak tersedia.');
-    }
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // TANGGAL LOKAL agar tidak bergeser karena perbedaan zona waktu
-    function tanggalLokal(date = new Date()) {
-      const tahun = date.getFullYear();
-      const bulan = String(date.getMonth() + 1).padStart(2, '0');
-      const hari = String(date.getDate()).padStart(2, '0');
-      return `${tahun}-${bulan}-${hari}`;
-    }
-
-    let bulanAktif = new Date();
-    let hariIni = tanggalLokal();
-    let tanggalTerpilih = hariIni;
-    const dataKlienSaatIni = new Map();
-
-    function esc(nilai) {
-      return String(nilai ?? '').replace(/[&<>"']/g, karakter => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;',
-        '"': '&quot;', "'": '&#39;'
-      }[karakter]));
-    }
-
-    function toast(pesan, durasi = 2500) {
-      const elemen = document.getElementById('toast');
-      elemen.innerText = pesan;
-      elemen.classList.add('show');
-      clearTimeout(elemen._timer);
-      elemen._timer = setTimeout(() => elemen.classList.remove('show'), durasi);
-    }
-
-    function linkWhatsApp(nomor) {
-      if (!nomor) return '';
-      let angka = String(nomor).replace(/\D/g, '');
-if (angka.startsWith('0')) {
-  if (angka.startsWith('01')) angka = '60' + angka.slice(1);
-  else angka = '60' + angka.slice(1);
-}
-      return `<a href="https://wa.me/${esc(angka)}" target="_blank"
-        rel="noopener noreferrer" style="font-size:12px;color:#16a34a;">
-        📱 WA: ${esc(nomor)}</a>`;
-    }
-
-    function tampilkanDaftar(data, tampilkanTanggal = false) {
-      const elemen = document.getElementById('daftarKlien');
-      dataKlienSaatIni.clear();
-
-      if (!data || data.length === 0) {
-        elemen.innerHTML = "<div style='color:#64748b;'><i>Tidak ada data klien.</i></div>";
-        return;
-      }
-
-      elemen.innerHTML = data.map(k => {
-        const id = String(k.id);
-        dataKlienSaatIni.set(id, k);
-
-        return `
-        }).join('');
-
-        <div class="klien-item">
-  <div class="row">
-    <div>
-      <strong>${esc(k.nama)}</strong>
-      ${k.jam ? '<span style="color:#3b82f6;font-size:12px;">' + esc(k.jam) + '</span>' : ''}
-      ${tampilkanTanggal ? '<span style="color:#f59e0b;font-size:12px;">' + esc(k.tanggal_pulang) + '</span>' : ''}
-      <br>
-      <span style="color:#64748b;font-size:12px;">Urusan: ${esc(k.keperluan || '-')}</span>
-      ${k.catatan ? '<br><span style="color:#94a3b8;font-size:12px;">Catatan: ' + esc(k.catatan) + '</span>' : ''}
-      ${k.wa ? '<br>' + linkWhatsApp(k.wa) : ''}
-    </div>
-    <div class="aksi">
-      <button type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
-      <button type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
-      <button type="button" class="secondary" onclick="ubahStatus('${esc(id)}', '${esc(k.status)}')">Ubah: ${esc(k.status) === 'selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
-      <button type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}', '${esc(k.jam)}', '${esc(k.keperluan)}', '${esc(k.wa)}', '${esc(k.tanggal_pulang)}')">Kirim WA</button>
-    </div>
-  </div>
+  <h2 style="margin-top:22px">📋 Data Klien</h2>
+  <label>Lihat Data Tanggal:</label>
+  <select id="filterTanggal" onchange="muatData()">
+    <option value="">Semua Tanggal</option>
+  </select>
+  <label>Cari nama atau urusan...</label>
+  <input id="cari" placeholder="🔍 Cari nama atau urusan..." oninput="muatData()">
+  <div id="jumlah">Total: 0 Klien</div>
+  <div id="daftar">Memuat data...</div>
 </div>
+
+<script>
+const SUPABASE_URL = "https://wffrfdbchcduufwaafpm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_lqUhFiFqnXZd6rdRFB7r0w_HD6xCJxM";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function tanggalLokal(d) {
+  if (!d) d = new Date();
+  const y = d.getFullYear();
+  let m = d.getMonth() + 1;
+  let t = d.getDate();
+  if (m < 10) m = "0" + m;
+  if (t < 10) t = "0" + t;
+  return y + "-" + m + "-" + t;
+}
+
+document.getElementById("tanggal").value = tanggalLokal(new Date());
+
+async function muatData() {
+  const jumlah = document.getElementById("jumlah");
+  const daftar = document.getElementById("daftar");
+  const filterTanggal = document.getElementById("filterTanggal").value;
+  const kataCari = document.getElementById("cari").value.toLowerCase();
+  try {
+    let query = supabaseClient.from("klien").select("*").order("tanggal", { ascending: true });
+    if (filterTanggal !== "") {
+      query = query.eq("tanggal", filterTanggal);
+    }
+    const res = await query;
+    if (res.error) throw res.error;
+    let data = res.data || [];
+
+    // Isi dropdown tanggal (sekali aja)
+    const select = document.getElementById("filterTanggal");
+    if (select.options.length <= 1) {
+      const listTanggal = [];
+      for (let i = 0; i < data.length; i++) {
+        if (listTanggal.indexOf(data[i].tanggal) === -1 && data[i].tanggal) {
+          listTanggal.push(data[i].tanggal);
+        }
+      }
+      for (let i = 0; i < listTanggal.length; i++) {
+        const opt = document.createElement("option");
+        opt.value = listTanggal[i];
+        opt.text = listTanggal[i];
+        select.appendChild(opt);
+      }
     }
 
-async function muatDaftarKlien() {
-  const elemen = document.getElementById('daftarKlien');
-  const jumlah = document.getElementById('infoJumlah');
-  const tanggal = document.getElementById('tglLihat').value;
-  if (!tanggal) return;
+    if (kataCari !== "") {
+      const hasil = [];
+      for (let i = 0; i < data.length; i++) {
+        const nama = (data[i].nama || "").toLowerCase();
+        const urus = (data[i].keperluan || "").toLowerCase();
+        if (nama.indexOf(kataCari) !== -1 || urus.indexOf(kataCari) !== -1) {
+          hasil.push(data[i]);
+        }
+      }
+      data = hasil;
+    }
 
-  elemen.innerHTML = '<i>Memuat data...</i>';
-  jumlah.innerText = 'Memuat...';
-
-  try {
-    // PASTIKAN menggunakan supabaseClient (bukan supabase)
-    const { data, error } = await supabaseClient
-      .from('klien')
-      .select('*')
-      .eq('tanggal_pulang', tanggal)
-      .order('jam', { ascending: true }); // nullsFirst DIHAPUS
-
-    if (error) throw error;
-
-    jumlah.innerText = "Total: "+ data.length+" Klien ("+tanggal+")";
-    tampilkanDaftar(data);
-  } catch (error) {
-    jumlah.innerText = 'Data tidak dapat dimuat';
-    elemen.innerText = 'Gagal memuat data: ' + (error.message || 'Periksa koneksi.');
+    jumlah.innerText = "Total: " + data.length + " Klien";
+    if (data.length === 0) {
+      daftar.innerText = "Belum ada data.";
+      return;
+    }
+    let html = "";
+    for (let i = 0; i < data.length; i++) {
+      const k = data[i];
+      html += "<div class='item'><b>" + (k.nama || "-") + "</b><br>Tanggal: " + (k.tanggal || "-") + " Jam: " + (k.jam || "-") + "<br>Urusan: " + (k.keperluan || "-") + "<br>WA: " + (k.wa || "-") + "<br>Catatan: " + (k.catatan || "-") + "</div>";
+    }
+    daftar.innerHTML = html;
+  } catch (e) {
+    jumlah.innerText = "Data tidak dapat dimuat";
+    daftar.innerText = "Gagal memuat data: " + e.message;
   }
 }
 
-    function kirimWA(nama, jam, keperluan, wa, tanggal) {
-  let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('0')) { nomor = '60' + nomor.slice(1); }
-  const pesan = "Halo " + nama + ", robot pintar asisten hafis mengingatkan tanggal " + tanggal + " jam " + jam + " ada jadwal mengurus " + keperluan + " ya. Terima kasih.";
-  window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
-}
-    
-    async function simpanKlien() {
-      const tombol = document.getElementById('btnSimpan');
-      const id = document.getElementById('editId').value;
-      const nama = document.getElementById('judul').value.trim();
-      const tanggal_pulang = document.getElementById('tanggal').value;
-      const jam = document.getElementById('jam').value || null;
-      const wa = document.getElementById('wa').value.trim();
-      const keperluan = document.getElementById('keperluan').value.trim();
-      const catatan = document.getElementById('catatanKlien').value.trim();
-
-      if (nama.length < 2) return toast('Nama minimal 2 karakter.');
-      if (!tanggal_pulang) return toast('Tanggal wajib diisi.');
-
-      const dataKlien = { nama, tanggal_pulang, jam, wa, keperluan, catatan };
-      tombol.disabled = true;
-      tombol.innerText = 'Menyimpan...';
-
-      try {
-        let hasil;
-
-        if (id) {
-          hasil = await supabaseClient.from('klien').update(dataKlien).eq('id', id);
-        } else {
-          hasil = await supabaseClient.from('klien').insert([dataKlien]);
-        }
-
-        if (hasil.error) throw hasil.error;
-
-        toast(id ? '✅ Data diperbarui!' : '✅ Data disimpan!');
-        resetForm();
-        await muatDaftarKlien();
-        await renderKalender();
-      } catch (error) {
-        toast('❌ Gagal menyimpan: ' + (error.message || 'Periksa koneksi dan pengaturan database.'));
-      } finally {
-        tombol.disabled = false;
-        tombol.innerText = id ? 'Update Data Klien' : 'Simpan Data Klien';
-      }
-    }
-
-    function resetForm() {
-      ['judul', 'wa', 'keperluan', 'catatanKlien', 'jam', 'editId'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-
-      document.getElementById('judulForm').innerText = '📝 Input Data Klien';
-      document.getElementById('btnSimpan').innerText = 'Simpan Data Klien';
-      document.getElementById('btnBatal').style.display = 'none';
-      document.getElementById('tanggal').value = tanggalTerpilih || hariIni;
-    }
-
-    function editKlien(id) {
-      const data = dataKlienSaatIni.get(String(id));
-      if (!data) return toast('Data klien tidak ditemukan. Muat ulang daftar.');
-
-      document.getElementById('editId').value = data.id;
-      document.getElementById('judul').value = data.nama || '';
-      document.getElementById('tanggal').value = data.tanggal_pulang || '';
-      document.getElementById('jam').value = data.jam || '';
-      document.getElementById('wa').value = data.wa || '';
-      document.getElementById('keperluan').value = data.keperluan || '';
-      document.getElementById('catatanKlien').value = data.catatan || '';
-      document.getElementById('judulForm').innerText = '✏️ Edit Data Klien';
-      document.getElementById('btnSimpan').innerText = 'Update Data Klien';
-      document.getElementById('btnBatal').style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function hapusKlien(id) {
-      if (!confirm('Yakin ingin menghapus data klien ini?')) return;
-
-      try {
-        const { data, error } = await supabaseClient.from('klien').delete().eq('id', id);
-        if (error) throw error;
-
-        toast('🗑️ Data dihapus.');
-        await muatDaftarKlien();
-        await renderKalender();
-      } catch (error) {
-        toast('❌ Gagal menghapus: ' + (error.message || 'Terjadi kesalahan.'));
-      }
-    }
-
-    async function muatDaftarKlien() {
-      const elemen = document.getElementById('daftarKlien');
-      const jumlah = document.getElementById('infoJumlah');
-      const tanggal = document.getElementById('tglLihat').value;
-
-      if (!tanggal) return;
-
-      elemen.innerHTML = '<i>Memuat data...</i>';
-      jumlah.innerText = 'Memuat...';
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('klien')
-          .select('*')
-          .eq('tanggal_pulang', tanggal)
-          .order('jam', { ascending: true, nullsFirst: false });
-
-        if (error) throw error;
-
-        jumlah.innerText = `Total: ${data.length} Klien`;
-        tampilkanDaftar(data);
-      } catch (error) {
-        jumlah.innerText = 'Data tidak dapat dimuat';
-        elemen.innerText = 'Gagal memuat data: ' + (error.message || 'Periksa koneksi dan pengaturan database.');
-      }
-    }
-
-    async function cariKlien() {
-  const kataKunci = document.getElementById('inputCari').value.trim().toLowerCase();
-  const elemen = document.getElementById('daftarKlien');
-  const jumlah = document.getElementById('infoJumlah');
-
-  if (!kataKunci) {
-    await muatDaftarKlien();
+async function simpanKlien() {
+  const nama = document.getElementById("nama").value.trim();
+  const wa = document.getElementById("wa").value.trim();
+  const tanggal = document.getElementById("tanggal").value;
+  const jam = document.getElementById("jam").value;
+  const keperluan = document.getElementById("keperluan").value.trim();
+  const catatan = document.getElementById("catatan").value.trim();
+  if (nama === "" || keperluan === "") {
+    alert("Isi Nama dan Apa yang diurus dulu ya");
     return;
   }
-
-  elemen.innerHTML = '<i>Mencari data...</i>';
-  jumlah.innerText = 'Mencari...';
-
-  try {
-    // PASTIKAN menggunakan supabaseClient
-    const { data, error } = await supabaseClient
-      .from('klien')
-      .select('*')
-      .order('tanggal_pulang', { ascending: false })
-      .limit(1000);
-
-    if (error) throw error;
-
-    const hasil = data.filter(k =>
-      String(k.nama || '').toLowerCase().includes(kataKunci) ||
-      String(k.keperluan || '').toLowerCase().includes(kataKunci)
-    );
-
-    jumlah.innerText = `Ditemukan: ${hasil.length} Klien`;
-    tampilkanDaftar(hasil, true);
-
-    if (hasil.length === 0) {
-      elemen.innerHTML = `<div style="color:#64748b;"><i>Tidak ada data yang cocok dengan kata kunci "${kataKunci}".</i></div>`;
-    }
-  } catch (error) {
-    jumlah.innerText = 'Pencarian gagal';
-    elemen.innerText = 'Gagal mencari data: ' + (error.message || 'Periksa koneksi.');
+  const res = await supabaseClient.from("klien").insert([{ nama: nama, wa: wa, tanggal: tanggal, jam: jam, keperluan: keperluan, catatan: catatan }]);
+  if (res.error) {
+    alert("Gagal simpan: " + res.error.message);
+    return;
   }
+  alert("Berhasil disimpan!");
+  document.getElementById("nama").value = "";
+  document.getElementById("wa").value = "";
+  document.getElementById("keperluan").value = "";
+  document.getElementById("catatan").value = "";
+  muatData();
 }
 
-    async function renderKalender() {
-      const grid = document.getElementById('kalenderGrid');
-      const judul = document.getElementById('judulBulan');
-      const tahun = bulanAktif.getFullYear();
-      const bulan = bulanAktif.getMonth();
-
-      const namaBulan = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-      ];
-
-      judul.innerText = `${namaBulan[bulan]} ${tahun}`;
-
-      const hariPertama = new Date(tahun, bulan, 1);
-      const hariTerakhir = new Date(tahun, bulan + 1, 0);
-      const tanggalAwal = `${tahun}-${String(bulan + 1).padStart(2, '0')}-01`;
-      const tanggalAkhir = `${tahun}-${String(bulan + 1).padStart(2, '0')}-${String(hariTerakhir.getDate()).padStart(2, '0')}`;
-
-      let tanggalAdaData = new Set();
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('klien')
-          .select('tanggal_pulang')
-          .gte('tanggal_pulang', tanggalAwal)
-          .lte('tanggal_pulang', tanggalAkhir);
-
-        if (error) throw error;
-        tanggalAdaData = new Set((data || []).map(item => item.tanggal_pulang));
-      } catch (error) {
-        console.error('Gagal memuat tanda kalender:', error);
-      }
-
-      let html = '';
-      ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].forEach(hari => {
-        html += `<div class="day-name">${hari}</div>`;
-      });
-
-      for (let i = 0; i < hariPertama.getDay(); i++) {
-        html += '<div class="day other"></div>';
-      }
-
-      for (let hari = 1; hari <= hariTerakhir.getDate(); hari++) {
-        const iso = `${tahun}-${String(bulan + 1).padStart(2, '0')}-${String(hari).padStart(2, '0')}`;
-        const kelas = ['day'];
-
-        if (iso === hariIni) kelas.push('today');
-        if (iso === tanggalTerpilih) kelas.push('selected');
-
-        const titik = tanggalAdaData.has(iso) ? '<div class="dot"></div>' : '';
-        html += `<div class="${kelas.join(' ')}" onclick="pilihTanggal('${iso}')">${hari}${titik}</div>`;
-      }
-
-      grid.innerHTML = html;
-    }
-
-    function pilihTanggal(iso) {
-      tanggalTerpilih = iso;
-      document.getElementById('tglLihat').value = iso;
-      document.getElementById('tanggal').value = iso;
-      document.getElementById('inputCari').value = '';
-      renderKalender();
-      muatDaftarKlien();
-    }
-
-    function geserBulan(delta) {
-      bulanAktif.setDate(1);
-      bulanAktif.setMonth(bulanAktif.getMonth() + delta);
-      renderKalender();
-    }
-
-    document.getElementById('daftarKlien').addEventListener('click', event => {
-      const tombol = event.target.closest('button[data-aksi]');
-      if (!tombol) return;
-
-      const id = tombol.dataset.id;
-      if (tombol.dataset.aksi === 'edit') editKlien(id);
-      if (tombol.dataset.aksi === 'hapus') hapusKlien(id);
-    });
-
-    document.getElementById('tanggal').value = hariIni;
-    document.getElementById('tglLihat').value = hariIni;
-
-    renderKalender();
-    muatDaftarKlien();
-
-    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('sw.js')
-        .catch(error => console.log('Service worker tidak aktif:', error));
-    }
-  </script>
+muatData();
+</script>
 </body>
 </html>
