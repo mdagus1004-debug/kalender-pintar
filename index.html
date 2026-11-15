@@ -184,8 +184,10 @@
     function linkWhatsApp(nomor) {
       if (!nomor) return '';
       let angka = String(nomor).replace(/\D/g, '');
-      if (angka.startsWith('0')) angka = '62' + angka.slice(1);
-
+if (angka.startsWith('0')) {
+  if (angka.startsWith('01')) angka = '60' + angka.slice(1);
+  else angka = '62' + angka.slice(1);
+}
       return `<a href="https://wa.me/${esc(angka)}" target="_blank"
         rel="noopener noreferrer" style="font-size:12px;color:#16a34a;">
         📱 WA: ${esc(nomor)}</a>`;
