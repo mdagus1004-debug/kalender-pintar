@@ -90,9 +90,9 @@
 
   <div class="card">
     <div class="kalender-header">
-      <button type="button" class="secondary" onclick="geserBulan(-1)">‹</button>
+      <button type="button" class="secondary" onclick="geserBulan(-1)">&lt;</button>
       <h2 id="judulBulan" style="margin:0;">-</h2>
-      <button type="button" class="secondary" onclick="geserBulan(1)">›</button>
+      <button type="button" class="secondary" onclick="geserBulan(1)">&gt;</button>
     </div>
     <div class="kalender-grid" id="kalenderGrid"></div>
   </div>
@@ -123,7 +123,7 @@
     <button type="button" class="secondary" onclick="resetForm()" id="btnBatal" style="display:none;">
       Batal Edit
     </button>
-  </div>
+
 
   <div class="card">
     <h2>📋 Data Klien</h2>
@@ -135,7 +135,7 @@
 
     <div id="infoJumlah" class="info-jumlah">Total: 0 Klien</div>
     <div id="daftarKlien"><i>Memuat data...</i></div>
-  </div>
+  
 
   <div id="toast"></div>
 
@@ -186,7 +186,7 @@
       let angka = String(nomor).replace(/\D/g, '');
 if (angka.startsWith('0')) {
   if (angka.startsWith('01')) angka = '60' + angka.slice(1);
-  else angka = '62' + angka.slice(1);
+  else angka = '60' + angka.slice(1);
 }
       return `<a href="https://wa.me/${esc(angka)}" target="_blank"
         rel="noopener noreferrer" style="font-size:12px;color:#16a34a;">
@@ -258,7 +258,7 @@ async function muatDaftarKlien() {
 }
 
     function kirimWA(nama, jam, keperluan, wa, tanggal) {
-  let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('01')) { nomor = '60' + nomor.slice(1); } else if (nomor.startsWith('0')) { nomor = '62' + nomor.slice(1); }
+  let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('0')) { nomor = '60' + nomor.slice(1); }
   const pesan = `Halo ${nama},robot pintar asisten hafis mengingatkan tanggal ${tanggal} jam ${jam} ada jadwal mengurus ${keperluan} ya. Terima kasih.`;
   window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
 }
@@ -328,7 +328,7 @@ async function muatDaftarKlien() {
       document.getElementById('judulForm').innerText = '✏️ Edit Data Klien';
       document.getElementById('btnSimpan').innerText = 'Update Data Klien';
       document.getElementById('btnBatal').style.display = 'block';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function hapusKlien(id) {
@@ -412,35 +412,6 @@ async function muatDaftarKlien() {
     elemen.innerText = 'Gagal mencari data: ' + (error.message || 'Periksa koneksi.');
   }
 }
-
-      elemen.innerHTML = '<i>Mencari data...</i>';
-      jumlah.innerText = 'Mencari...';
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('klien')
-          .select('*')
-          .order('tanggal_pulang', { ascending: false })
-          .limit(1000);
-
-        if (error) throw error;
-
-        const hasil = data.filter(k =>
-          String(k.nama || '').toLocaleLowerCase('id').includes(kataKunci) ||
-          String(k.keperluan || '').toLocaleLowerCase('id').includes(kataKunci)
-        );
-
-        jumlah.innerText = `Ditemukan: ${hasil.length} Klien`;
-        tampilkanDaftar(hasil, true);
-
-        if (hasil.length === 0) {
-          elemen.innerHTML = `<div style="color:#64748b;"><i>Tidak ada data yang cocok dengan kata kunci “${esc(kataKunci)}”.</i></div>`;
-        }
-      } catch (error) {
-        jumlah.innerText = 'Pencarian gagal';
-        elemen.innerText = 'Gagal mencari data: ' + (error.message || 'Periksa koneksi dan pengaturan database.');
-      }
-    }
 
     async function renderKalender() {
       const grid = document.getElementById('kalenderGrid');
