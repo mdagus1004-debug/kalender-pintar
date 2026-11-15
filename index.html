@@ -249,7 +249,7 @@ async function muatDaftarKlien() {
 
     if (error) throw error;
 
-    jumlah.innerText = `Total: ${data.length} Klien (${tanggal})`;
+    jumlah.innerText = "Total: "+ data.length+" Klien ("+tanggal+")";
     tampilkanDaftar(data);
   } catch (error) {
     jumlah.innerText = 'Data tidak dapat dimuat';
@@ -259,7 +259,7 @@ async function muatDaftarKlien() {
 
     function kirimWA(nama, jam, keperluan, wa, tanggal) {
   let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('0')) { nomor = '60' + nomor.slice(1); }
-  const pesan = `Halo ${nama}, robot pintar asisten hafis mengingatkan tanggal ${tanggal} jam ${jam} ada jadwal mengurus ${keperluan} ya. Terima kasih.`;
+  const pesan = "Halo " + nama + ", robot pintar asisten hafis mengingatkan tanggal " + tanggal + " jam " + jam + " ada jadwal mengurus " + keperluan + " ya. Terima kasih.";
   window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
 }
     
