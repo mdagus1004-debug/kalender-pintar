@@ -152,7 +152,7 @@
     }
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const supabase =supabaseClient;
+    window.supabase = supabaseClient;
 
     // TANGGAL LOKAL agar tidak bergeser karena perbedaan zona waktu
     function tanggalLokal(date = new Date()) {
