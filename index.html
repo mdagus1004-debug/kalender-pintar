@@ -67,7 +67,7 @@ async function muatData() {
   const filterTanggal = document.getElementById("filterTanggal").value;
   const kataCari = document.getElementById("cari").value.toLowerCase();
   try {
-    let query = supabaseClient.from("klien").select("*").order("tanggal", { ascending: true });
+    let query = supabaseClient.from("klien").select("*")
     if (filterTanggal !== "") {
       query = query.eq("tanggal", filterTanggal);
     }
