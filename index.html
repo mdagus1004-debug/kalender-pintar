@@ -244,22 +244,24 @@ async function ubahStatus(id, statusLama) {
   }
 }
   
- function kirimWA(nama, jam, keperluan, wa, tanggal) {
+function kirimWA(nama, jam, keperluan, wa, tanggal) {
   if (!wa) return toast('Nomor WA tidak ada.');
   
   let nomor = String(wa).replace(/[^0-9]/g, ''); 
   
-  // PERHATIKAN TANDA KURAWAL TUTUP } DI SINI
+  // Pengaturan format nomor (60 untuk Malaysia, 62 untuk Indonesia)
   if (nomor.startsWith('01')) { 
     nomor = '60' + nomor.slice(1); 
   } else if (nomor.startsWith('0')) { 
     nomor = '62' + nomor.slice(1); 
   }
   
-  const pesan = `Halo ${nama}, robot pintar asisten hafis mengingatkan tanggal ${tanggal} jam ${jam || ''} ada jadwal mengurus ${keperluan || 'keperluan'} ya. Terima kasih.`;
+  // Pesan WhatsApp dengan format tebal dan emoji
+  const pesan = `Halo *${nama}* 👋,\nPerkenalkan nama saya *MAVIX* 🤖, robot pintar asisten Hafis.\nSaya mengingatkan bahwa pada tanggal *${tanggal}* ${jam ? `jam *${jam}* ` : ''}ada jadwal untuk mengurus: *${keperluan || 'keperluan'}*. 📝\n\nTerima kasih. 🙏`;
   
   window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
 }
+    
     
     async function simpanKlien() {
       const tombol = document.getElementById('btnSimpan');
