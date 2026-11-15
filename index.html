@@ -136,7 +136,16 @@
     <div id="infoJumlah" class="info-jumlah">Total: 0 Klien</div>
     <div id="daftarKlien"><i>Memuat data...</i></div>
   </div>
-
+  
+  <!-- KOTAK PENGINGAT 7 HARI KE DEPAN --> 
+  <div class="card" id="panelPengingat" style="display: none; border: 2px solid #f59e0b; background: #fffbeb;">
+  <h2 style="color: #b45309; font-size: 18px; margin-bottom: 10px;">🔔 Pengingat 7 Hari ke Depan</h2>
+  <div id="daftarPengingat" style="margin-bottom: 15px; font-size: 14px; line-height: 1.6;"></div>
+  <button type="button" onclick="kirimSemuaPengingat()" id="btnKirimSemua" style="background: #d97706; width: 100%;">
+    🚀 Memuat data pengingat...
+  </button>
+  </div>
+  
   <div id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -346,6 +355,75 @@ function kirimWA(nama, jam, keperluan, wa, tanggal) {
       }
     }
 
+    // ================= FITUR PENGINGAT 7 HARI =================
+let dataPengingatHariIni = [];
+
+async function cekPengingatHariIni() {
+  const panel = document.getElementById('panelPengingat');
+  const daftar = document.getElementById('daftarPengingat');
+  
+  const hariDepan = new Date();
+  hariDepan.setDate(hariDepan.getDate() + 7);
+  const tanggalBatas = tanggalLokal(hariDepan);
+
+  const { data, error } = await supabaseClient
+    .from('klien')
+    .select('*')
+    .gte('tanggal_pulang', hariIni)
+    .lte('tanggal_pulang', tanggalBatas)
+    .neq('wa', null)
+    .neq('wa', '');
+
+  if (error) return console.error('Gagal memuat pengingat:', error);
+
+  dataPengingatHariIni = data.filter(k => k.status !== 'Selesai');
+
+  if (dataPengingatHariIni.length > 0) {
+    panel.style.display = 'block';
+    
+    daftar.innerHTML = dataPengingatHariIni.map(k => {
+      const tgl = new Date(k.tanggal_pulang);
+      const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+      const isHariIni = k.tanggal_pulang === hariIni ? '<span style="color:red; font-weight:bold;">[HARI INI]</span> ' : `[${formatTgl}] `;
+
+      return `<div style="margin-bottom: 5px;">
+                ${isHariIni}<strong>${esc(k.nama)}</strong> 
+                (${esc(k.jam || 'Tanpa Jam')}) - ${esc(k.keperluan)}
+              </div>`;
+    }).join('');
+    
+    document.getElementById('btnKirimSemua').innerText = `🚀 Kirim Pengingat (${dataPengingatHariIni.length} Klien)`;
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+async function kirimSemuaPengingat() {
+  const btn = document.getElementById('btnKirimSemua');
+  if (dataPengingatHariIni.length === 0) return;
+
+  btn.disabled = true;
+  btn.innerText = 'Mengirim...';
+  let berhasil = 0;
+  
+  for (let i = 0; i < dataPengingatHariIni.length; i++) {
+    const k = dataPengingatHariIni[i];
+    const nomor = normalisasiWA(k.wa);
+    const tglWA = new Date(k.tanggal_pulang).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const pesan = `Halo *${k.nama}* 👋,\nPerkenalkan saya *MAVIX*, asisten whatsapp milik Hafis.\nSaya mengingatkan bahwa pada tanggal *${tglWA}* ${k.jam ? `jam *${k.jam}* ` : ''}ada jadwal untuk mengurus: *${k.keperluan || 'keperluan'}*. 📝\n\nTerima kasih. 🙏`;
+    
+    window.open(`https://wa.me/${nomor}?text=${encodeURIComponent(pesan)}`, '_blank');
+    berhasil++;
+
+    // Jeda 3 detik sebelum membuka tab WA klien berikutnya
+    await new Promise(r => setTimeout(r, 3000));
+  }
+
+  btn.disabled = false;
+  btn.innerText = `✅ Selesai (${berhasil} Pesan Dibuka)`;
+  toast('Semua tab WhatsApp berhasil dibuka!');
+}
+    
     async function muatDaftarKlien() {
       const elemen = document.getElementById('daftarKlien');
       const jumlah = document.getElementById('infoJumlah');
@@ -363,7 +441,7 @@ function kirimWA(nama, jam, keperluan, wa, tanggal) {
           .eq('tanggal_pulang', tanggal)
           .order('jam', { ascending: true, nullsFirst: false });
 
-        if (error) throw error;
+ F       if (error) throw error;
 
         jumlah.innerText = `Total: ${data.length} Klien`;
         tampilkanDaftar(data);
@@ -503,6 +581,7 @@ function kirimWA(nama, jam, keperluan, wa, tanggal) {
 
     renderKalender();
     muatDaftarKlien();
+    cekPengingatHariIni();
 
 //     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 //     navigator.serviceWorker.register('sw.js')
