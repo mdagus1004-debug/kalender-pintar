@@ -221,8 +221,8 @@ if (angka.startsWith('0')) {
               <div class="aksi">
                 <button  type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
                 <button  type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
-                <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
-                <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)},'${esc(k.tanggal)}')">Kirim WA</button>
+                <button type="button" class="secondary" data-aksi="status" data-id="${esc(id)}">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
+                <button type="button" class="secondary" data-aksi="wa" data-id="${esc(id)}">💬 Kirim WA</button>
               </div>
             </div>
           </div>`;
@@ -488,6 +488,12 @@ async function ubahStatus(id, statusLama) {
       const id = tombol.dataset.id;
       if (tombol.dataset.aksi === 'edit') editKlien(id);
       if (tombol.dataset.aksi === 'hapus') hapusKlien(id);
+
+      if (tombol.dataset.aksi === 'status') ubahStatus(id, dataKlienSaatIni.get(String(id))?.status || 'Belum');
+      if (tombol.dataset.aksi === 'wa') {
+       const data = dataKlienSaatIni.get(String(id));
+      if (data) kirimWA(data.nama, data.jam, data.keperluan, data.wa, data.tanggal_pulang);
+    }
     });
 
     document.getElementById('tanggal').value = hariIni;
