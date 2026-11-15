@@ -231,13 +231,33 @@ if (angka.startsWith('0')) {
 
 async function ubahStatus(id, statusLama) {
   const baru = statusLama === 'Selesai' ? 'Belum' : 'Selesai';
-  await supabase.from('klien').update({ status: baru }).eq('id', id);
-  loadData();
+  try {
+    // Menggunakan supabaseClient
+    const { error } = await supabaseClient.from('klien').update({ status: baru }).eq('id', id);
+    if (error) throw error;
+    
+    toast(`Status diubah ke "${baru}".`);
+    await muatDaftarKlien(); // Ganti loadData() menjadi muatDaftarKlien()
+    await renderKalender();
+  } catch (error) {
+    toast('❌ Gagal ubah status: ' + error.message);
+  }
 }
-
-    function kirimWA(nama, jam, keperluan, wa, tanggal) {
-  let nomor = String(wa).replace(/[^0-9]/g, ''); if (nomor.startsWith('01')) { nomor = '60' + nomor.slice(1); } else if (nomor.startsWith('0')) { nomor = '62' + nomor.slice(1); }
-  const pesan = `Halo ${nama},robot pintar asisten hafis mengingatkan tanggal ${tanggal} jam ${jam} ada jadwal mengurus ${keperluan} ya. Terima kasih.`;
+  
+ function kirimWA(nama, jam, keperluan, wa, tanggal) {
+  if (!wa) return toast('Nomor WA tidak ada.');
+  
+  let nomor = String(wa).replace(/[^0-9]/g, ''); 
+  
+  // PERHATIKAN TANDA KURAWAL TUTUP } DI SINI
+  if (nomor.startsWith('01')) { 
+    nomor = '60' + nomor.slice(1); 
+  } else if (nomor.startsWith('0')) { 
+    nomor = '62' + nomor.slice(1); 
+  }
+  
+  const pesan = `Halo ${nama}, robot pintar asisten hafis mengingatkan tanggal ${tanggal} jam ${jam || ''} ada jadwal mengurus ${keperluan || 'keperluan'} ya. Terima kasih.`;
+  
   window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
 }
     
