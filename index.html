@@ -217,8 +217,8 @@
                 ${k.wa ? `<br>${linkWhatsApp(k.wa)}` : ''}
               </div>
               <div class="aksi">
-                <button type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
-                <button> type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
+                <button  type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
+                <button  type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
                 <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
                 <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)}')">Kirim WA</button>
               </div>
