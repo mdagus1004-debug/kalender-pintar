@@ -207,26 +207,27 @@ if (angka.startsWith('0')) {
         dataKlienSaatIni.set(id, k);
 
         return `
-          <div class="klien-item">
-            <div class="row">
-              <div>
-                <strong>${esc(k.nama)}</strong>
-                ${k.jam ? `<span style="color:#3b82f6;font-size:12px;"> • ${esc(k.jam)}</span>` : ''}
-                ${tampilkanTanggal ? `<span style="color:#f59e0b;font-size:12px;"> • ${esc(k.tanggal_pulang)}</span>` : ''}
-                <br>
-                <span style="color:#64748b;font-size:12px;">Urusan: ${esc(k.keperluan || '-')}</span>
-                ${k.catatan ? `<br><span style="color:#94a3b8;font-size:12px;">Catatan: ${esc(k.catatan)}</span>` : ''}
-                ${k.wa ? `<br>${linkWhatsApp(k.wa)}` : ''}
-              </div>
-              <div class="aksi">
-  <button  type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
- <button  type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
- <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
- <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)},'${esc(k.tanggal_pulang:)}')">Kirim WA</button>
-              </div>
-            </div>
-          </div>`;
-      }).join('');
+        }).join('');
+
+        <div class="klien-item">
+  <div class="row">
+    <div>
+      <strong>${esc(k.nama)}</strong>
+      ${k.jam ? '<span style="color:#3b82f6;font-size:12px;">' + esc(k.jam) + '</span>' : ''}
+      ${tampilkanTanggal ? '<span style="color:#f59e0b;font-size:12px;">' + esc(k.tanggal_pulang) + '</span>' : ''}
+      <br>
+      <span style="color:#64748b;font-size:12px;">Urusan: ${esc(k.keperluan || '-')}</span>
+      ${k.catatan ? '<br><span style="color:#94a3b8;font-size:12px;">Catatan: ' + esc(k.catatan) + '</span>' : ''}
+      ${k.wa ? '<br>' + linkWhatsApp(k.wa) : ''}
+    </div>
+    <div class="aksi">
+      <button type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
+      <button type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
+      <button type="button" class="secondary" onclick="ubahStatus('${esc(id)}', '${esc(k.status)}')">Ubah: ${esc(k.status) === 'selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
+      <button type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}', '${esc(k.jam)}', '${esc(k.keperluan)}', '${esc(k.wa)}', '${esc(k.tanggal_pulang)}')">Kirim WA</button>
+    </div>
+  </div>
+</div>
     }
 
 async function muatDaftarKlien() {
