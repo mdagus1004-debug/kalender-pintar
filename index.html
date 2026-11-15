@@ -218,13 +218,27 @@
               </div>
               <div class="aksi">
                 <button type="button" class="secondary" data-aksi="edit" data-id="${esc(id)}">Edit</button>
-                <button type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
+                <button> type="button" class="danger" data-aksi="hapus" data-id="${esc(id)}">Hapus</button>
+                <button  type="button" class="secondary" onclick="ubahStatus('${esc(id)}','${esc(k.status)}')">${esc(k.status) === 'Selesai' ? '✅ Selesai' : '⏳ Belum'}</button>
+                <button  type="button" class="secondary" onclick="kirimWA('${esc(k.nama)}','${esc(k.jam)}','${esc(k.keperluan)}','${esc(k.wa)}')">Kirim WA</button>
               </div>
             </div>
           </div>`;
       }).join('');
     }
 
+async function ubahStatus(id, statusLama) {
+  const baru = statusLama === 'Selesai' ? 'Belum' : 'Selesai';
+  await supabase.from('klien').update({ status: baru }).eq('id', id);
+  loadData();
+}
+
+    function kirimWA(nama, jam, keperluan, wa) {
+  const nomor = '62' + String(wa).replace(/^0/, '').replace(/[^0-9]/g, '');
+  const pesan = `Halo ${nama}, besok jam ${jam} ada jadwal urus ${keperluan} ya. Terima kasih.`;
+  window.open('https://wa.me/' + nomor + '?text=' + encodeURIComponent(pesan), '_blank');
+}
+    
     async function simpanKlien() {
       const tombol = document.getElementById('btnSimpan');
       const id = document.getElementById('editId').value;
