@@ -376,7 +376,8 @@ async function cekPengingatHariIni() {
 
   if (error) return console.error('Gagal memuat pengingat:', error);
 
-  dataPengingatHariIni = data.filter(k => k.status !== 'Selesai');
+  let dataSnooze = JSON.parse(localStorage.getItem('snoozeKlien')) || [];
+  dataPengingatHariIni = data.filter(k => k.status !== 'Selesai' && !dataSnooze.includes(String(k.id)));
 
   if (dataPengingatHariIni.length > 0) {
     panel.style.display = 'block';
@@ -386,7 +387,8 @@ async function cekPengingatHariIni() {
       const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
       const isHariIni = k.tanggal_pulang === hariIni ? '<span style="color:red; font-weight:bold;">[HARI INI]</span> ' : `[${formatTgl}] `;
 
-      return `<div style="margin-bottom: 5px;">${isHariIni}<strong>${esc(k.nama)}</strong> (${esc(k.jam || 'Tanpa Jam')}) - ${esc(k.keperluan)}</div>`;
+      return `<div id="klien-${k.id}" style="margin-bottom: 5px;">${isHariIni}<strong>${esc(k.nama)}</strong> (${esc(k.jam || 'Tanpa Jam')}) - ${esc(k.keperluan)}</div>`; 
+      
     }).join('');
     
     document.getElementById('btnKirimSemua').innerText = `🚀 Kirim Pengingat (${dataPengingatHariIni.length} Klien)`;
@@ -584,6 +586,34 @@ async function kirimSemuaPengingat() {
 //     navigator.serviceWorker.register('sw.js')
 //     .catch(error => console.log('Service worker tidak aktif:', error));
 //     }
+// FITUR TUNDA (SNOOZE)
+function snoozePengingat(id) {
+  let dataSnooze = JSON.parse(localStorage.getItem('snoozeKlien')) || [];
+  if (!dataSnooze.includes(String(id))) {
+    dataSnooze.push(String(id));
+    localStorage.setItem('snoozeKlien', JSON.stringify(dataSnooze));
+  }
+  toast('Klien ditunda dari daftar pengingat.');
+  
+  
+}
+// FITUR TUNDA (SNOOZE)
+function snoozePengingat(id) {
+  let dataSnooze = JSON.parse(localStorage.getItem('snoozeKlien')) || [];
+  if (!dataSnooze.includes(String(id))) {
+    dataSnooze.push(String(id));
+    localStorage.setItem('snoozeKlien', JSON.stringify(dataSnooze));
+  }
+
+  
+  toast('Klien ditunda dari daftar pengingat.');
+  
+  // Sembunyikan elemen dari layar secara langsung tanpa memanggil fungsi lain
+  const elemenKlien = document.getElementById('klien-' + id);
+  if (elemenKlien) {
+    elemenKlien.style.display = 'none';
+  }
+}
   </script>
 </body>
 </html>
