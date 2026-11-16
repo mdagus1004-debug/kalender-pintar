@@ -614,31 +614,6 @@ function snoozePengingat(id) {
     elemenKlien.style.display = 'none';
   }
 }
-
-    
-    // --- MULAI KUPING SUPER ---
-let timerBicara = null;
-let teksAntri = "";
-
-function bicara(teks) {
-  teksAntri = teks;
-  speechSynthesis.cancel();
-  clearTimeout(timerBicara);
-  timerBicara = setTimeout(function() {
-    let suara = new SpeechSynthesisUtterance(teksAntri);
-    suara.lang = 'id-ID';
-    suara.rate = 0.95;
-    suara.pitch = 1;
-    let semuaSuara = speechSynthesis.getVoices();
-    let suaraIndo = semuaSuara.find(v => v.name === 'Chrome OS Bahasa Indonesia 1')
-      || semuaSuara.find(v => v.name.includes('Chrome OS Bahasa Indonesia'))
-      || semuaSuara.find(v => v.lang === 'id-ID');
-    if (suaraIndo) {
-      suara.voice = suaraIndo;
-    }
-    speechSynthesis.speak(suara);
-  }, 300);
-}
     
 function terjemahkanError(pesan) {
   pesan = String(pesan);
@@ -657,6 +632,113 @@ function terjemahkanError(pesan) {
   return "Ada kesalahan di web. Cek konsol.";
 }
 
+// --- MULAI KUPING SUPER: 1 KUPING, 1 MULUT ---
+
+// 1 MULUT: cuma ini yang boleh bicara
+let lagiBicara = false;
+let antrianBicara = [];
+let teksTerakhirBicara = "";
+let waktuTerakhirBicara = 0;
+
+function bicara(teks) {
+  if (!teks) return;
+  teks = String(teks).trim();
+  if (!teks) return;
+
+  // Kalau teksnya sama dan baru saja dibaca, jangan dibaca lagi
+  // Ini yang cegah ketimpa
+  let sekarang = Date.now();
+  if (teks === teksTerakhirBicara && sekarang - waktuTerakhirBicara < 3000) {
+    return;
+  }
+
+  // Masuk antrian, biar tidak barengan
+  antrianBicara.push(teks);
+  prosesAntrianBicara();
+}
+
+function prosesAntrianBicara() {
+  if (lagiBicara) return;
+  if (antrianBicara.length === 0) return;
+
+  let teks = antrianBicara.shift();
+  teksTerakhirBicara = teks;
+  waktuTerakhirBicara = Date.now();
+  lagiBicara = true;
+
+  speechSynthesis.cancel();
+  let suara = new SpeechSynthesisUtterance(teks);
+  suara.lang = 'id-ID';
+  suara.rate = 0.95;
+  suara.pitch = 1;
+
+  let semuaSuara = speechSynthesis.getVoices();
+  let suaraIndo = semuaSuara.find(v => v.name === 'Chrome OS Bahasa Indonesia 1')
+    || semuaSuara.find(v => v.name.includes('Chrome OS Bahasa Indonesia'))
+    || semuaSuara.find(v => v.lang === 'id-ID');
+  if (suaraIndo) suara.voice = suaraIndo;
+
+  suara.onend = function() {
+    lagiBicara = false;
+    // Kasih jeda 300ms baru baca yang berikutnya, biar tidak numpuk
+    setTimeout(prosesAntrianBicara, 300);
+  };
+  suara.onerror = function() {
+    lagiBicara = false;
+    setTimeout(prosesAntrianBicara, 300);
+  };
+
+  setTimeout(function() {
+    speechSynthesis.speak(suara);
+  }, 150);
+}
+
+// Penerjemah error ke bahasa Indonesia
+function terjemahkanError(pesan) {
+  pesan = String(pesan || "");
+  if (pesan.includes("is not defined")) {
+    let nama = pesan.split(" ")[0];
+    return "Ada yang salah, " + nama + " tidak ditemukan, mungkin salah ketik nama.";
+  }
+  if (pesan.includes("Cannot read properties of null")) {
+    return "Ada yang salah, datanya kosong, tidak bisa dibaca.";
+  }
+  if (pesan.includes("Unexpected token")) {
+    return "Ada yang salah, ada tanda baca yang salah di kode.";
+  }
+  if (pesan.includes("is not a function")) {
+    return "Ada yang salah, fungsinya tidak ditemukan.";
+  }
+  return "Ada error: " + pesan;
+}
+
+// 1 KUPING PUSAT: semua error masuk ke sini dulu, baru ke mulut
+function dengarError(pesanMentah) {
+  let pesan = terjemahkanError(pesanMentah);
+  bicara(pesan);
+}
+
+// Kupingnya dipasang 3 jalur, tapi semuanya lari ke 1 kuping pusat yang sama
+// Jadi tidak rebutan, tidak ketimpa
+
+// Jalur 1: error biasa + syntax error
+window.onerror = function(pesan) {
+  dengarError(pesan);
+  return true;
+};
+
+// Jalur 2: error di dalam Promise
+window.addEventListener('unhandledrejection', function(e) {
+  dengarError(e.reason);
+});
+
+// Jalur 3: error yang cuma muncul di console
+let consoleLama = console.error;
+console.error = function(...isi) {
+  dengarError(isi.join(" "));
+  consoleLama(...isi);
+};
+    
 </script>
 </body>
 </html>
