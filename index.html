@@ -657,13 +657,6 @@ function terjemahkanError(pesan) {
   return "Ada kesalahan di web. Cek konsol.";
 }
 
-// Kuping 1: Untuk error biasa
-window.onerror = function(pesan) {
-  bicara(terjemahkanError(pesan));
-  return true;
-};
-// --- SELESAI KUPING SUPER ---
-
 </script>
 </body>
 </html>
