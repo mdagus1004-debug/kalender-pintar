@@ -811,6 +811,20 @@ console.error = function(...isi) {
   kupingSuper(isi.join(" "));
   consoleLamaSuper(...isi);
 };
+
+// FUNGSI NORMALISASI NOMOR WHATSAPP
+function normalisasiWA(nomor) {
+  if (!nomor) return '';
+  let angka = String(nomor).replace(/\D/g, '');
+  if (angka.startsWith('01')) {
+    angka = '60' + angka.slice(1);
+  } else if (angka.startsWith('0')) {
+    angka = '62' + angka.slice(1);
+  } else if (angka.startsWith('8')) {
+    angka = '62' + angka;
+  }
+  return angka;
+}
     
 </script>
 </body>
