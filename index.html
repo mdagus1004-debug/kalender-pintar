@@ -632,75 +632,114 @@ function terjemahkanError(pesan) {
   return "Ada kesalahan di web. Cek konsol.";
 }
 
-// --- MULAI KUPING SUPER: 1 KUPING, 1 MULUT ---
+// --- KUPING SUPER + MULUT SUPER: VERSI PALING SUPER ---
 
-// 1 MULUT: cuma ini yang boleh bicara
-let lagiBicara = false;
-let antrianBicara = [];
-let teksTerakhirBicara = "";
-let waktuTerakhirBicara = 0;
+// ============ 1 MULUT SUPER ============
+let mulutLagiBicara = false;
+let antrianMulut = [];
+let timerMulut = null;
+let teksTerakhirMulut = "";
+let waktuTerakhirMulut = 0;
+let sedangBicaraTeks = "";
 
 function bicara(teks) {
   if (!teks) return;
   teks = String(teks).trim();
   if (!teks) return;
 
-  // Kalau teksnya sama dan baru saja dibaca, jangan dibaca lagi
-  // Ini yang cegah ketimpa
+  // SUPER 1: Kalau teksnya sama dan baru dibaca, BUANG
   let sekarang = Date.now();
-  if (teks === teksTerakhirBicara && sekarang - waktuTerakhirBicara < 3000) {
+  if (teks === teksTerakhirMulut && sekarang - waktuTerakhirMulut < 5000) {
     return;
   }
 
-  // Masuk antrian, biar tidak barengan
-  antrianBicara.push(teks);
-  prosesAntrianBicara();
+  // SUPER 2: Kalau teksnya sama dengan yang lagi diantri, BUANG
+  if (antrianMulut.includes(teks)) {
+    return;
+  }
+
+  // SUPER 3: Kalau lagi bicara teks yang sama, BUANG
+  if (mulutLagiBicara && teks === sedangBicaraTeks) {
+    return;
+  }
+
+  // Masuk antrian, maksimal 3 saja, yang lama dibuang biar tidak numpuk
+  antrianMulut.push(teks);
+  if (antrianMulut.length > 3) {
+    antrianMulut.shift();
+  }
+
+  jalanKanMulut();
 }
 
-function prosesAntrianBicara() {
-  if (lagiBicara) return;
-  if (antrianBicara.length === 0) return;
+function jalanKanMulut() {
+  if (mulutLagiBicara) return;
+  if (antrianMulut.length === 0) return;
 
-  let teks = antrianBicara.shift();
-  teksTerakhirBicara = teks;
-  waktuTerakhirBicara = Date.now();
-  lagiBicara = true;
+  let teks = antrianMulut.shift();
+  teksTerakhirMulut = teks;
+  waktuTerakhirMulut = Date.now();
+  sedangBicaraTeks = teks;
+  mulutLagiBicara = true;
 
+  // Matikan suara lama dulu, baru ngomong yang baru
   speechSynthesis.cancel();
-  let suara = new SpeechSynthesisUtterance(teks);
-  suara.lang = 'id-ID';
-  suara.rate = 0.95;
-  suara.pitch = 1;
+  clearTimeout(timerMulut);
 
-  let semuaSuara = speechSynthesis.getVoices();
-  let suaraIndo = semuaSuara.find(v => v.name === 'Chrome OS Bahasa Indonesia 1')
-    || semuaSuara.find(v => v.name.includes('Chrome OS Bahasa Indonesia'))
-    || semuaSuara.find(v => v.lang === 'id-ID');
-  if (suaraIndo) suara.voice = suaraIndo;
+  timerMulut = setTimeout(function() {
+    let suara = new SpeechSynthesisUtterance(teks);
+    suara.lang = 'id-ID';
+    suara.rate = 0.95;
+    suara.pitch = 1;
 
-  suara.onend = function() {
-    lagiBicara = false;
-    // Kasih jeda 300ms baru baca yang berikutnya, biar tidak numpuk
-    setTimeout(prosesAntrianBicara, 300);
-  };
-  suara.onerror = function() {
-    lagiBicara = false;
-    setTimeout(prosesAntrianBicara, 300);
-  };
+    let semuaSuara = speechSynthesis.getVoices();
+    let suaraIndo = semuaSuara.find(v => v.name === 'Chrome OS Bahasa Indonesia 1')
+      || semuaSuara.find(v => v.name.includes('Chrome OS Bahasa Indonesia'))
+      || semuaSuara.find(v => v.lang === 'id-ID');
+    if (suaraIndo) suara.voice = suaraIndo;
 
-  setTimeout(function() {
+    suara.onend = function() {
+      mulutLagiBicara = false;
+      sedangBicaraTeks = "";
+      // Jeda 400ms baru baca berikutnya
+      setTimeout(jalanKanMulut, 400);
+    };
+    suara.onerror = function() {
+      mulutLagiBicara = false;
+      sedangBicaraTeks = "";
+      setTimeout(jalanKanMulut, 400);
+    };
+
     speechSynthesis.speak(suara);
-  }, 150);
+
+    // Pengaman: kalau 8 detik tidak selesai, paksa berhenti biar tidak nyangkut
+    setTimeout(function() {
+      if (mulutLagiBicara && sedangBicaraTeks === teks) {
+        speechSynthesis.cancel();
+        mulutLagiBicara = false;
+        sedangBicaraTeks = "";
+        jalanKanMulut();
+      }
+    }, 8000);
+  }, 200);
 }
 
-// Penerjemah error ke bahasa Indonesia
+// Tombol darurat kalau mau diamkan total
+function diam() {
+  antrianMulut = [];
+  speechSynthesis.cancel();
+  mulutLagiBicara = false;
+  sedangBicaraTeks = "";
+}
+
+// ============ PENERJEMAH SUPER ============
 function terjemahkanError(pesan) {
   pesan = String(pesan || "");
   if (pesan.includes("is not defined")) {
     let nama = pesan.split(" ")[0];
     return "Ada yang salah, " + nama + " tidak ditemukan, mungkin salah ketik nama.";
   }
-  if (pesan.includes("Cannot read properties of null")) {
+  if (pesan.includes("Cannot read properties of null") || pesan.includes("Cannot read properties of undefined")) {
     return "Ada yang salah, datanya kosong, tidak bisa dibaca.";
   }
   if (pesan.includes("Unexpected token")) {
@@ -709,34 +748,58 @@ function terjemahkanError(pesan) {
   if (pesan.includes("is not a function")) {
     return "Ada yang salah, fungsinya tidak ditemukan.";
   }
+  if (pesan.includes("Failed to fetch") || pesan.includes("NetworkError")) {
+    return "Ada yang salah, internetnya gagal mengambil data.";
+  }
+  if (pesan.includes("Script error")) {
+    return "Ada yang salah di skrip lain.";
+  }
   return "Ada error: " + pesan;
 }
 
-// 1 KUPING PUSAT: semua error masuk ke sini dulu, baru ke mulut
-function dengarError(pesanMentah) {
-  let pesan = terjemahkanError(pesanMentah);
-  bicara(pesan);
+// ============ 1 KUPING SUPER ============
+// Semua error, dari mana saja, masuk ke sini dulu
+
+let kupingTerakhirTeks = "";
+let kupingTerakhirWaktu = 0;
+
+function kupingSuper(pesanMentah) {
+  let pesan = String(pesanMentah || "");
+
+  // SUPER: Jangan dengar error dari mulut sendiri, biar tidak muter
+  if (pesan.includes("SpeechSynthesis") || pesan.includes("utterance")) {
+    return;
+  }
+  if (pesan.includes("bicara") && pesan.includes("is not defined")) {
+    return;
+  }
+
+  // SUPER: Kalau errornya sama dalam 3 detik, jangan teruskan
+  let sekarang = Date.now();
+  if (pesan === kupingTerakhirTeks && sekarang - kupingTerakhirWaktu < 3000) {
+    return;
+  }
+  kupingTerakhirTeks = pesan;
+  kupingTerakhirWaktu = sekarang;
+
+  let teksBicara = terjemahkanError(pesan);
+  bicara(teksBicara);
 }
 
-// Kupingnya dipasang 3 jalur, tapi semuanya lari ke 1 kuping pusat yang sama
-// Jadi tidak rebutan, tidak ketimpa
-
-// Jalur 1: error biasa + syntax error
+// Pasang kupingnya, 3 jalur tapi 1 otak
 window.onerror = function(pesan) {
-  dengarError(pesan);
+  kupingSuper(pesan);
   return true;
 };
 
-// Jalur 2: error di dalam Promise
 window.addEventListener('unhandledrejection', function(e) {
-  dengarError(e.reason);
+  kupingSuper(e.reason);
 });
 
-// Jalur 3: error yang cuma muncul di console
-let consoleLama = console.error;
+let consoleLamaSuper = console.error;
 console.error = function(...isi) {
-  dengarError(isi.join(" "));
-  consoleLama(...isi);
+  kupingSuper(isi.join(" "));
+  consoleLamaSuper(...isi);
 };
     
 </script>
