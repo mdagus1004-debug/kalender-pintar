@@ -634,6 +634,50 @@ window.onerror = function(pesan) {
   bicara(terjemahkanError(pesan));
 }
 // --- SELESAI SUARA INDONESIA ---
+
+    // --- MULAI KUPING SUPER ---
+function bicara(teks) {
+  speechSynthesis.cancel(); // biar tidak numpuk suaranya
+  let suara = new SpeechSynthesisUtterance(teks);
+  suara.lang = 'id-ID';
+  speechSynthesis.speak(suara);
+}
+
+function terjemahkanError(pesan) {
+  pesan = String(pesan);
+  if (pesan.includes("is not defined")) {
+    return "Ada fungsi yang tidak ditemukan. Namanya hilang.";
+  }
+  if (pesan.includes("unexpected token")) {
+    return "Ada tanda kurung yang salah.";
+  }
+  if (pesan.includes("normalisasiWA")) {
+    return "Fungsi normalisasi W A tidak ditemukan.";
+  }
+  if (pesan.includes("simpanKlien")) {
+    return "Fungsi simpan klien tidak ditemukan.";
+  }
+  return "Ada kesalahan di web. Cek konsol.";
+}
+
+// Kuping 1: Untuk error biasa
+window.onerror = function(pesan) {
+  bicara(terjemahkanError(pesan));
+  return true;
+};
+
+// Kuping 2: Untuk error di dalam Promise (in promise)
+window.addEventListener('unhandledrejection', function(e) {
+  bicara(terjemahkanError(e.reason));
+});
+
+// Kuping 3: Untuk error yang cuma muncul di console
+let consoleLama = console.error;
+console.error = function(...isi) {
+  bicara(terjemahkanError(isi.join(" ")));
+  consoleLama(...isi);
+};
+// --- SELESAI KUPING SUPER ---
   </script>
 </body>
 </html>
