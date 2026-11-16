@@ -615,25 +615,21 @@ function snoozePengingat(id) {
   }
 }
 
-    // --- MULAI SUARA INDONESIA ---
+let audioSekarang = null;
 function bicara(teks) {
-  let suara = new SpeechSynthesisUtterance(teks);
-  suara.lang = 'id-ID';
-  speechSynthesis.speak(suara);
-}
-function terjemahkanError(pesan) {
-  if (pesan.includes("is not defined")) {
-    return "Ada fungsi yang tidak ditemukan";
+  if (audioSekarang) { audioSekarang.pause(); }
+  // Potong teks kalau terlalu panjang
+  let potongan = teks.match(/.{1,180}(\s|$)/g) || [teks];
+  let i = 0;
+  function mainkanBerikutnya() {
+    if (i >= potongan.length) return;
+    let url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=id&client=tw-ob&q=" + encodeURIComponent(potongan[i]);
+    audioSekarang = new Audio(url);
+    audioSekarang.onended = function() { i++; mainkanBerikutnya(); };
+    audioSekarang.play();
   }
-  if (pesan.includes("unexpected token")) {
-    return "Ada tanda kurung yang salah";
-  }
-  return "Ada kesalahan di web";
+  mainkanBerikutnya();
 }
-window.onerror = function(pesan) {
-  bicara(terjemahkanError(pesan));
-}
-// --- SELESAI SUARA INDONESIA ---
 
     // --- MULAI KUPING SUPER ---
 function bicara(teks) {
