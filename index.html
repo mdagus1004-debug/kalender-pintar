@@ -614,6 +614,26 @@ function snoozePengingat(id) {
     elemenKlien.style.display = 'none';
   }
 }
+
+    // --- MULAI SUARA INDONESIA ---
+function bicara(teks) {
+  let suara = new SpeechSynthesisUtterance(teks);
+  suara.lang = 'id-ID';
+  speechSynthesis.speak(suara);
+}
+function terjemahkanError(pesan) {
+  if (pesan.includes("is not defined")) {
+    return "Ada fungsi yang tidak ditemukan";
+  }
+  if (pesan.includes("unexpected token")) {
+    return "Ada tanda kurung yang salah";
+  }
+  return "Ada kesalahan di web";
+}
+window.onerror = function(pesan) {
+  bicara(terjemahkanError(pesan));
+}
+// --- SELESAI SUARA INDONESIA ---
   </script>
 </body>
 </html>
