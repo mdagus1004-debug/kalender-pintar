@@ -683,7 +683,6 @@ function jalanKanMulut() {
   mulutLagiBicara = true;
 
   // Matikan suara lama dulu, baru ngomong yang baru
-  speechSynthesis.cancel();
   clearTimeout(timerMulut);
 
   timerMulut = setTimeout(function() {
@@ -720,7 +719,7 @@ function jalanKanMulut() {
         sedangBicaraTeks = "";
         jalanKanMulut();
       }
-    }, 8000);
+    }, 30000);
   }, 200);
 }
 
