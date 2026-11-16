@@ -596,10 +596,10 @@ async function kirimSemuaPengingat() {
     muatDaftarKlien();
     cekPengingatHariIni();
 
-//     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-//     navigator.serviceWorker.register('sw.js')
-//     .catch(error => console.log('Service worker tidak aktif:', error));
-//     }
+     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+     navigator.serviceWorker.register('sw.js')
+     .catch(error => console.log('Service worker tidak aktif:', error));
+    }
 // FITUR TUNDA (SNOOZE)
 function snoozePengingat(id) {
   let dataSnooze = JSON.parse(localStorage.getItem('snoozeKlien')) || [];
