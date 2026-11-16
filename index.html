@@ -682,11 +682,22 @@ function jalanKanMulut() {
   sedangBicaraTeks = teks;
   mulutLagiBicara = true;
 
-  // Matikan suara lama dulu, baru ngomong yang baru
-  clearTimeout(timerMulut);
+  // Potong jadi kalimat pendek, biar tidak kepotong di jalan
+  let potongan = teks.split(". ");
+  let i = 0;
 
-  timerMulut = setTimeout(function() {
-    let suara = new SpeechSynthesisUtterance(teks);
+  function bacaSatuKalimat() {
+    if (i >= potongan.length) {
+      mulutLagiBicara = false;
+      sedangBicaraTeks = "";
+      setTimeout(jalanKanMulut, 400);
+      return;
+    }
+
+    let kalimat = potongan[i];
+    i++;
+
+    let suara = new SpeechSynthesisUtterance(kalimat);
     suara.lang = 'id-ID';
     suara.rate = 0.95;
     suara.pitch = 1;
@@ -698,31 +709,17 @@ function jalanKanMulut() {
     if (suaraIndo) suara.voice = suaraIndo;
 
     suara.onend = function() {
-      mulutLagiBicara = false;
-      sedangBicaraTeks = "";
-      // Jeda 400ms baru baca berikutnya
-      setTimeout(jalanKanMulut, 400);
+      setTimeout(bacaSatuKalimat, 200);
     };
     suara.onerror = function() {
-      mulutLagiBicara = false;
-      sedangBicaraTeks = "";
-      setTimeout(jalanKanMulut, 400);
+      setTimeout(bacaSatuKalimat, 200);
     };
 
     speechSynthesis.speak(suara);
+  }
 
-    // Pengaman: kalau 8 detik tidak selesai, paksa berhenti biar tidak nyangkut
-    setTimeout(function() {
-      if (mulutLagiBicara && sedangBicaraTeks === teks) {
-        speechSynthesis.cancel();
-        mulutLagiBicara = false;
-        sedangBicaraTeks = "";
-        jalanKanMulut();
-      }
-    }, 30000);
-  }, 200);
+  bacaSatuKalimat();
 }
-
 // Tombol darurat kalau mau diamkan total
 function diam() {
   antrianMulut = [];
