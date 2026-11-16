@@ -617,6 +617,29 @@ function snoozePengingat(id) {
 
     
     // --- MULAI KUPING SUPER ---
+let timerBicara = null;
+let teksAntri = "";
+
+function bicara(teks) {
+  teksAntri = teks;
+  speechSynthesis.cancel();
+  clearTimeout(timerBicara);
+  timerBicara = setTimeout(function() {
+    let suara = new SpeechSynthesisUtterance(teksAntri);
+    suara.lang = 'id-ID';
+    suara.rate = 0.95;
+    suara.pitch = 1;
+    let semuaSuara = speechSynthesis.getVoices();
+    let suaraIndo = semuaSuara.find(v => v.name === 'Chrome OS Bahasa Indonesia 1')
+      || semuaSuara.find(v => v.name.includes('Chrome OS Bahasa Indonesia'))
+      || semuaSuara.find(v => v.lang === 'id-ID');
+    if (suaraIndo) {
+      suara.voice = suaraIndo;
+    }
+    speechSynthesis.speak(suara);
+  }, 300);
+}
+    
 function terjemahkanError(pesan) {
   pesan = String(pesan);
   if (pesan.includes("is not defined")) {
@@ -639,19 +662,8 @@ window.onerror = function(pesan) {
   bicara(terjemahkanError(pesan));
   return true;
 };
-
-// Kuping 2: Untuk error di dalam Promise (in promise)
-window.addEventListener('unhandledrejection', function(e) {
-  bicara(terjemahkanError(e.reason));
-});
-
-// Kuping 3: Untuk error yang cuma muncul di console
-let consoleLama = console.error;
-console.error = function(...isi) {
-  bicara(terjemahkanError(isi.join(" ")));
-  consoleLama(...isi);
-};
 // --- SELESAI KUPING SUPER ---
-  </script>
+
+</script>
 </body>
 </html>
