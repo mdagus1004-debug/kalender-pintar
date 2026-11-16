@@ -70,7 +70,10 @@
     .klien-item .row {
       display: flex; justify-content: space-between; align-items: start; gap: 8px;
     }
-    .klien-item .aksi { display: flex; gap: 6px; }
+    .klien-item .aksi { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; width: 100%; }
+    @media (min-width: 500px) {
+    .klien-item .aksi { width: auto; margin-top: 0; }
+    }
     .klien-item .aksi button { width: auto; padding: 4px 10px; font-size: 12px; margin: 0; }
     .info-jumlah {
       font-weight: bold; color: #1d4ed8; font-size: 15px; margin-top: 15px;
