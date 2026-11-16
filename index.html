@@ -615,20 +615,30 @@ function snoozePengingat(id) {
   }
 }
 
-let audioSekarang = null;
 function bicara(teks) {
-  if (audioSekarang) { audioSekarang.pause(); }
-  // Potong teks kalau terlalu panjang
-  let potongan = teks.match(/.{1,180}(\s|$)/g) || [teks];
-  let i = 0;
-  function mainkanBerikutnya() {
-    if (i >= potongan.length) return;
-    let url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=id&client=tw-ob&q=" + encodeURIComponent(potongan[i]);
-    audioSekarang = new Audio(url);
-    audioSekarang.onended = function() { i++; mainkanBerikutnya(); };
-    audioSekarang.play();
+  speechSynthesis.cancel();
+  let suara = new SpeechSynthesisUtterance(teks);
+  suara.lang = 'ms-MY'; // pakai Melayu
+  suara.rate = 0.95; // agak pelan biar jelas
+  suara.pitch = 1;
+  suara.volume = 1;
+
+  // Cari suara Melayu yang ada di laptop kamu
+  let semuaSuara = speechSynthesis.getVoices();
+  let suaraMelayu = semuaSuara.find(v => v.lang === 'ms-MY');
+
+  if (suaraMelayu) {
+    suara.voice = suaraMelayu;
   }
-  mainkanBerikutnya();
+
+  speechSynthesis.speak(suara);
+}
+
+// Biar suara Melayu kebaca
+speechSynthesis.onvoiceschanged = function() {
+  speechSynthesis.getVoices();
+};
+speechSynthesis.getVoices();
 }
 
     // --- MULAI KUPING SUPER ---
