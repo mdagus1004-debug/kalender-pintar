@@ -615,25 +615,6 @@ function snoozePengingat(id) {
   }
 }
 
-function bicara(teks) {
-  speechSynthesis.cancel();
-  let suara = new SpeechSynthesisUtterance(teks);
-  suara.lang = 'id-ID';
-  suara.rate = 0.95;
-  suara.pitch = 1;
-  suara.volume = 1;
-
-  let semuaSuara = speechSynthesis.getVoices();
-  // Utamakan suara Chrome OS yang natural, jangan yang Android robot
-  let suaraIndo = semuaSuara.find(v => v.name === 'Chrome OS Bahasa Indonesia 1')
-    || semuaSuara.find(v => v.name.includes('Chrome OS Bahasa Indonesia'))
-    || semuaSuara.find(v => v.lang === 'id-ID');
-
-  if (suaraIndo) {
-    suara.voice = suaraIndo;
-  }
-  speechSynthesis.speak(suara);
-}
     
     // --- MULAI KUPING SUPER ---
 function bicara(teks) {
